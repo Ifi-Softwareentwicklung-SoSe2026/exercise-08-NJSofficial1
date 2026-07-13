@@ -92,6 +92,7 @@ Alle Code-Snippets mit `Console.WriteLine(...)` gehören zur Ausgabelogik in der
 
 ```text
 Schwer wiederverwendbar wären:
++ WriteLines in der Main-Methode
 + kein implementiertes Logging (Bezug auf Webapp: Es müsste ein weiterer Logstream vorhanden sein.)
 ```
 
