@@ -15,7 +15,7 @@ tags: [Sommersemester2026, Softwareentwicklung, Übung08]
 
 -->
 
-[![LiaScript Course](https://raw.githubusercontent.com/LiaScript/LiaScript/master/badges/course.svg)](https://liascript.github.io/course/?https://raw.githubusercontent.com/Ifi-Softwareentwicklung-SoSe2026/exercise_08/refs/heads/main/README.md)
+[![LiaScript Course](https://raw.githubusercontent.com/LiaScript/LiaScript/master/badges/course.svg)](https://liascript.github.io/course/?https://raw.githubusercontent.com/Ifi-Softwareentwicklung-SoSe2026/exercise-08-NJSofficial1/main/README.md)
 
 # Aufgabe 08
 
@@ -75,27 +75,35 @@ Beantworte vor den Codeänderungen kurz:
 1. Welche Teile des Codes gehören zur Prozesslogik?
 
 ```text
-Hier Antwort einfügen
+Zur Prozesslogik gehören alle Teile des Programms, die die Abfolge, die Datenverarbeitung und die *Vorbereitung* der Ausgabelogik steuern. Beispiele:
++ `foreach`-Schleife
++ Berechnung der `filled`-Variable und der `bar`
++ `if`-Prüfbedingungen
 ```
 
 2. Welche Teile gehören zur Konsolenvisualisierung?
 
 ```text
-Hier Antwort einfügen
+Alle Code-Snippets mit `Console.WriteLine(...)` gehören zur Ausgabelogik in der CL, benso `Console.CursorVisible`.
 ```
 
 
 3. Welche Teile wären in einer GUI- oder Webanwendung schwer wiederverwendbar?
 
 ```text
-Hier Antwort einfügen
+Schwer wiederverwendbar wären:
++ kein implementiertes Logging (Bezug auf Webapp: Es müsste ein weiterer Logstream vorhanden sein.)
 ```
 
 
 4. Was müsstest du ändern, wenn du Logging hinzufügen willst?
 
 ```text
-Hier Antwort einfügen
++ striktes Trennen von Programmlogik und Ausgabelogik ->
+Verwenden eigener .cs-files, Klassen, Methoden und Separieren mittels namespaces
++ keine `Console.WriteLine(...)` in der Main-Logik
++ keine Unterscheidung der Loglevels vorhanden -> Warning momentan normal angezeigt
++ bei Erweiterung: fehlende TimeStamps und weitere Platzhalter müssten in jeder Logmessage mit hinzugefügt werden
 ```
 
 
