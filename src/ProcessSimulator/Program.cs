@@ -23,6 +23,7 @@ internal class Program
         };
 
         ProgressReporter progressChecker = Anzeigelogik.DrawProgressBar;
+        // kein "&&", sondern "+" und Datentypen (Delegatetypen) nicht vergessen
         progressChecker += (ProgressReporter) Anzeigelogik.WarningHalfDone + Anzeigelogik.InformationFinished;
 
         foreach (var step in steps)
@@ -70,7 +71,7 @@ public class Anzeigelogik
     {
         if (percent == 100)
         {
-            Console.WriteLine();
+            Console.WriteLine("\n");
         }
     }
 }
