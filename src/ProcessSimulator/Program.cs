@@ -8,9 +8,6 @@ internal class Program
 {
     private static void Main()
     {
-        Console.CursorVisible = false;
-        Console.WriteLine("=== Process Simulator ===");
-        Console.WriteLine();
 
         string[] steps =
         {
@@ -21,6 +18,8 @@ internal class Program
             "Publishing results",
             "Cleaning up"
         };
+
+        Anzeigelogik.StartInitilization();
 
         ProgressReporter progressChecker = Anzeigelogik.DrawProgressBar;
         // kein "&&", sondern "+" und Datentypen (Delegatetypen) nicht vergessen
@@ -34,8 +33,7 @@ internal class Program
             }
         }
 
-        Console.CursorVisible = true;
-        Console.WriteLine("\nProzess abgeschlossen!");
+        Anzeigelogik.End();
     }
 
     
@@ -73,6 +71,19 @@ public class Anzeigelogik
         {
             Console.WriteLine("\n");
         }
+    }
+
+    public static void StartInitilization()
+    {
+        Console.CursorVisible = false;
+        Console.WriteLine("=== Process Simulator ===");
+        Console.WriteLine();
+    }
+
+    public static void End()
+    {
+        Console.CursorVisible = true;
+        Console.WriteLine("\nProzess abgeschlossen!");
     }
 }
 
