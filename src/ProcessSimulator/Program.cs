@@ -2,14 +2,12 @@ using System;
 using System.Threading;
 
 namespace ProcessSimulator;
+public delegate void ProgressReporter(string stepName, int percent);
 
 internal class Program
 {
     private static void Main()
     {
-        Console.CursorVisible = false;
-        Console.WriteLine("=== Process Simulator ===");
-        Console.WriteLine();
 
         string[] steps =
         {
@@ -21,31 +19,29 @@ internal class Program
             "Cleaning up"
         };
 
-        foreach (string step in steps)
-        {
-            Console.WriteLine($"Starting: {step}");
+        Anzeigelogik.StartInitilization();
 
+        ProgressReporter progressChecker = Anzeigelogik.DrawProgressBar;
+        // kein "&&", sondern "+" und Datentypen (Delegatetypen) nicht vergessen
+        progressChecker += (ProgressReporter) Anzeigelogik.WarningHalfDone + Anzeigelogik.InformationFinished;
+
+        foreach (var step in steps)
+        {
             for (int percent = 0; percent <= 100; percent += 5)
             {
-                DrawProgressBar(step, percent);
-
-                if (percent == 50)
-                {
-                    Console.WriteLine($"  Warning: {step} is only halfway done.");
-                }
-
-                Thread.Sleep(80);
+                progressChecker(step, percent); 
             }
-
-            Console.WriteLine($"Completed: {step}");
-            Console.WriteLine();
         }
 
-        Console.WriteLine("All process steps completed.");
-        Console.CursorVisible = true;
+        Anzeigelogik.End();
     }
 
-    private static void DrawProgressBar(string stepName, int percent)
+    
+}
+
+public class Anzeigelogik
+{
+    public static void DrawProgressBar(string stepName, int percent)
     {
         const int width = 30;
         const char filledChar = '█';
@@ -56,11 +52,39 @@ internal class Program
         int filled = percent * width / 100;
 
         string bar = new string(filledChar, filled) + new string(emptyChar, width - filled);
+        // \r -> Zurücksetzen des Cursors an den Zeilenanfang
         Console.Write($"\r{stepName,-22} {barStartChar}{bar}{barEndChar} {percent,3}%");
+        Thread.Sleep(80);
+    }
 
-        if (percent == 100)
+    public static void WarningHalfDone(string stepName, int percent)
+    {
+        if (percent == 50)
         {
-            Console.WriteLine();
+            Console.WriteLine($"\n [WARNING] '{stepName}' is only halfway done.");
         }
     }
+
+    public static void InformationFinished(string stepName, int percent)
+    {
+        if (percent == 100)
+        {
+            Console.WriteLine("\n");
+        }
+    }
+
+    public static void StartInitilization()
+    {
+        Console.CursorVisible = false;
+        Console.WriteLine("=== Process Simulator ===");
+        Console.WriteLine();
+    }
+
+    public static void End()
+    {
+        Console.CursorVisible = true;
+        Console.WriteLine("\nProzess abgeschlossen!");
+    }
 }
+
+// https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/using-delegates
