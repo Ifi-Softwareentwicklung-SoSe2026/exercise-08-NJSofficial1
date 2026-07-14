@@ -57,7 +57,7 @@ public class Anzeigelogik
         Thread.Sleep(80);
     }
 
-    // Meldung bei 50% Fortschritt
+    // Meldung bei 50% Fortschritt 
     public static void WarningHalfDone(string stepName, int percent)
     {
         if (percent == 50)
