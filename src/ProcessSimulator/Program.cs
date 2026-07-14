@@ -2,46 +2,87 @@ using System;
 using System.Threading;
 
 namespace ProcessSimulator;
-public delegate void ProgressReporter(string stepName, int percent);
 
-internal class Program
+// 
+public class ProcessEventArgs : EventArgs
 {
-    private static void Main()
+    public string StepName { get; }
+    public int Percent { get; }
+
+    public ProcessEventArgs(string stepName, int percent)
     {
-
-        string[] steps =
-        {
-            "Downloading data",
-            "Validating input",
-            "Processing records",
-            "Generating report",
-            "Publishing results",
-            "Cleaning up"
-        };
-
-        Anzeigelogik.StartInitilization();
-
-        ProgressReporter progressChecker = Anzeigelogik.DrawProgressBar;
-        // kein "&&", sondern "+" und Datentypen (Delegatetypen) nicht vergessen
-        progressChecker += (ProgressReporter) Anzeigelogik.WarningHalfDone + Anzeigelogik.InformationFinished;
-
-        foreach (var step in steps)
-        {
-            for (int percent = 0; percent <= 100; percent += 5)
-            {
-                progressChecker(step, percent); 
-            }
-        }
-
-        Anzeigelogik.End();
+        StepName = stepName;
+        Percent = percent;
     }
-
-    
 }
 
-public class Anzeigelogik
+
+public class ProcessRunner
 {
-    public static void DrawProgressBar(string stepName, int percent)
+    private readonly string[] _steps =
+    {
+        "Downloading data",
+        "Validating input",
+        "Processing records",
+        "Generating report",
+        "Publishing results",
+        "Cleaning up"
+    };
+
+    // Definition der einzelnen Events mit optionaler Eventübergabe
+    public event EventHandler<ProcessEventArgs>? StepStarted;
+    public event EventHandler<ProcessEventArgs>? ProgressChanged;
+    public event EventHandler? ProcessCompleted;
+
+    public void Run()
+    {
+        foreach (string step in _steps)
+        {
+            // Syntax immer: step -> Um welches Event geht es?, <Fortschritt in Prozent>
+            OnStepStarted(new ProcessEventArgs(step, 0));
+
+            for (int percent = 0; percent <= 100; percent += 5)
+            {
+                OnProgressChanged(new ProcessEventArgs(step, percent));
+                // Simulation der benötigten Zeit, die die Ausführung des Schrittes benötigt
+                Thread.Sleep(80);
+            }
+
+        }
+        // Event, das bei Abschluss des Gesamtprozesses getriggert wird
+        OnProcessCompleted(EventArgs.Empty);
+    }
+    
+    // invoke = aufrufen, beschwören -> "Beschwöre/Erzeuge" das Event ;-)
+    private void OnStepStarted(ProcessEventArgs e)
+    {
+        StepStarted?.Invoke(this, e);
+    }
+
+    protected virtual void OnProgressChanged(ProcessEventArgs e)
+    {
+        ProgressChanged?.Invoke(this, e);
+    }
+
+    protected virtual void OnProcessCompleted(EventArgs e)
+    {
+        ProcessCompleted?.Invoke(this, e);
+    }
+
+
+}
+
+public static class Anzeigelogik
+{
+    public static void StartInitialization()
+    {
+        Console.CursorVisible = false;
+        Console.WriteLine("=== Process Simulator ===");
+        Console.WriteLine();
+    }
+
+    // Subscriber für den Fortschrittsbalken
+    public static void OnProgressChanged(object? sender, ProcessEventArgs e)
     {
         const int width = 30;
         const char filledChar = '█';
@@ -49,43 +90,56 @@ public class Anzeigelogik
         const char barStartChar = '⟦';
         const char barEndChar = '⟧';
 
-        int filled = percent * width / 100;
-
+        int filled = e.Percent * width / 100;
         string bar = new string(filledChar, filled) + new string(emptyChar, width - filled);
-        // \r -> Zurücksetzen des Cursors an den Zeilenanfang
-        Console.Write($"\r{stepName,-22} {barStartChar}{bar}{barEndChar} {percent,3}%");
-        Thread.Sleep(80);
+        
+        Console.Write($"\r{e.StepName,-22} {barStartChar}{bar}{barEndChar} {e.Percent,3}%");
     }
 
-    // Meldung bei 50% Fortschritt
-    public static void WarningHalfDone(string stepName, int percent)
+    // Subscriber für die 50%-Warnung
+    public static void OnWarningHalfDone(object? sender, ProcessEventArgs e)
     {
-        if (percent == 50)
+        if (e.Percent == 50)
         {
-            Console.WriteLine($"\n [WARNING] '{stepName}' is only halfway done.");
+            Console.WriteLine($"\n [WARNING] '{e.StepName}' is only halfway done.");
         }
     }
 
-    public static void InformationFinished(string stepName, int percent)
+    // Subscriber für das Ende eines einzelnen Schrittes
+    public static void OnStepFinished(object? sender, ProcessEventArgs e)
     {
-        if (percent == 100)
+        if (e.Percent == 100)
         {
             Console.WriteLine("\n");
         }
     }
 
-    public static void StartInitilization()
-    {
-        Console.CursorVisible = false;
-        Console.WriteLine("=== Process Simulator ===");
-        Console.WriteLine();
-    }
-
-    public static void End()
+    // Subscriber für das Ende des Gesamtprozesses
+    public static void OnProcessCompleted(object? sender, EventArgs e)
     {
         Console.CursorVisible = true;
         Console.WriteLine("\nProzess abgeschlossen!");
     }
 }
 
-// https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/using-delegates
+// Einstiegspunkt ins Programm -> neue Main()-Methode
+class Program
+{
+    private static void Main()
+    {
+        Anzeigelogik.StartInitialization();
+
+        // Erzeugung einer Prozessinstanz
+        ProcessRunner runner = new ProcessRunner();
+
+
+        // Verbindung der Events mit den Subscribern in der UI-Logik 
+        runner.ProgressChanged += Anzeigelogik.OnProgressChanged;
+        runner.ProgressChanged += Anzeigelogik.OnWarningHalfDone;
+        runner.ProgressChanged += Anzeigelogik.OnStepFinished;
+        runner.ProcessCompleted += Anzeigelogik.OnProcessCompleted;
+
+        // Starten des Prozesses
+        runner.Run();
+    }
+}
